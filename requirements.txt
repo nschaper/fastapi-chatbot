@@ -1,0 +1,23 @@
+fastapi>=0.95.0
+uvicorn[standard]>=0.22.0
+
+# For environment variable management
+python-dotenv>=1.0.0
+
+# For OpenAI API calls
+openai>=0.28.0
+
+# For Claude/Anthropic API (if you’re using it)
+# Note: As of now, the anthropic library might be in alpha/beta,
+#       so versioning can change quickly. Check their GitHub for specifics.
+anthropic
+
+# For making generic HTTP requests (used in the Grok/Gemini stubs)
+requests>=2.31.0
+
+# For local LLMs (using Hugging Face Transformers and PyTorch as an example)
+transformers>=4.30.0
+torch>=2.0.0
+
+# If you plan to use llama-cpp-based models, uncomment below
+# llama-cpp-python>=0.1.50

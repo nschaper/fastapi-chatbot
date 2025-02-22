@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Chatbot Interface</title>
+    <style>
+        #chatBox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 400px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        #userInput {
+            width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Chatbot Interface (WebSockets)</h1>
+
+    <div id="chatBox"></div>
+    <input type="text" id="userInput" placeholder="Type your message here..." />
+    <button id="sendButton">Send</button>
+
+    <script>
+        const chatBox = document.getElementById("chatBox");
+        const userInput = document.getElementById("userInput");
+        const sendButton = document.getElementById("sendButton");
+
+        // Create WebSocket connection. Use the same host and port as your FastAPI app
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsUrl = `${protocol}://${window.location.host}/ws/chat`;
+        const socket = new WebSocket(wsUrl);
+
+        // Function to append messages to the chat box
+        function appendMessage(sender, message) {
+            const msgElem = document.createElement("div");
+            msgElem.textContent = `${sender}: ${message}`;
+            chatBox.appendChild(msgElem);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        socket.onopen = () => {
+            appendMessage("System", "WebSocket connection established");
+        };
+
+        socket.onmessage = (event) => {
+            // event.data is a string, parse it as JSON
+            const data = JSON.parse(event.data);
+            const reply = data.reply;
+            appendMessage("Chatbot", reply);
+        };
+
+        socket.onerror = (error) => {
+            appendMessage("Error", "WebSocket error: " + error);
+        };
+
+        sendButton.addEventListener("click", sendMessage);
+        userInput.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Display user's message
+            appendMessage("User", message);
+
+            // Send JSON payload via WebSocket
+            socket.send(JSON.stringify({
+                message: message,
+                model: "openai"  // or "local", "grok", etc.
+            }));
+
+            // Clear input
+            userInput.value = "";
+        }
+    </script>
+</body>
+
+</html>
