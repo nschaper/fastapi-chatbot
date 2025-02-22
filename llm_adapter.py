@@ -8,18 +8,25 @@ load_dotenv()
 # --------------------------
 # OpenAI Integration Example
 # --------------------------
-from openai import OpenAI
+from openai import AsyncOpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def get_openai_response(message: str) -> str:
+async def get_openai_response(message: str):
     try:
-        response = client.chat.completions.create(model="gpt-3.5-turbo",  # or another supported model
-        messages=[{"role": "user", "content": message}],
-        temperature=0.7)
-        return response.choices[0].message.content.strip()
+        stream = await client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": message}],
+            temperature=0.7,
+            stream=True
+        )
+        
+        async for chunk in stream:
+            if content := chunk.choices[0].delta.content:
+                yield content
+                
     except Exception as e:
-        return f"OpenAI error: {str(e)}"
+        yield f"OpenAI error: {str(e)}"
 
 # --------------------------
 # Claude Integration Example

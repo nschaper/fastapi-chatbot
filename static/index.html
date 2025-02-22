@@ -49,11 +49,29 @@
             appendMessage("System", "WebSocket connection established");
         };
 
+        let currentMessage = null;
+
         socket.onmessage = (event) => {
-            // event.data is a string, parse it as JSON
             const data = JSON.parse(event.data);
-            const reply = data.reply;
-            appendMessage("Chatbot", reply);
+
+            if (data.type === "token") {
+                // If this is the first token, create a new message element
+                if (!currentMessage) {
+                    currentMessage = document.createElement("div");
+                    currentMessage.textContent = "Chatbot: ";
+                    chatBox.appendChild(currentMessage);
+                }
+                // Append the token to the current message
+                currentMessage.textContent += data.content;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+            else if (data.type === "end") {
+                // Reset currentMessage for the next response
+                currentMessage = null;
+            }
+            else if (data.type === "error") {
+                appendMessage("Error", data.content);
+            }
         };
 
         socket.onerror = (error) => {
